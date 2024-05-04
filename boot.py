@@ -13,6 +13,9 @@ cs = Pin(6, Pin.OUT)
 display = Matrix(spi, cs, 3, 3, reverse_ids=True)
 display.brightness(7)
 display.zero()
+# This will light up all the LEDs as a test. 
+# If this is not desired, add a # to the start of the line below to comment it out.
+display.fill(1)
 display.show(force=True)
 
 
