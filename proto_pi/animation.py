@@ -1,3 +1,5 @@
+import json
+import os
 from _thread import allocate_lock
 
 from proto_pi import Command
@@ -6,7 +8,7 @@ from proto_pi.rendering import Frame
 import time
 
 
-class Location:
+class Region:
     def __init__(self, name: str, x: int, y: int, mirror: bool = False, flip: bool = False) -> None:
         self._name: str = name
         self._x: int = x
@@ -50,8 +52,8 @@ class Location:
         return f"({self.name}: {self.x},{self.y} {'(M)' if self.mirror else ''}"
 
     @staticmethod
-    def from_json(data: dict) -> 'Location':
-        return Location(
+    def from_json(data: dict) -> 'Region':
+        return Region(
             data.get("name", "default"),
             data.get("x", 0),
             data.get("y", 0),
@@ -63,7 +65,7 @@ class Location:
 class Animation:
     def __init__(self,
                  name: str,
-                 locations: list[Location],
+                 regions: list[Region],
                  frames: list[Frame],
                  duration: float,
                  hold: float,
@@ -71,7 +73,7 @@ class Animation:
                  reverse: bool
                  ) -> None:
         self._name: str = name
-        self._locations: list[Location] = locations
+        self._regions: list[Region] = regions
         self._frames: list[Frame] = frames
         self._loop: bool = loop
         self._reverse: bool = reverse
@@ -81,9 +83,9 @@ class Animation:
         self._duration_millis: int = int(duration * 1000)
         self._hold_millis: int = int(hold * 1000)
         self._start_millis: int = 0
-        for location in self.locations:
+        for region in self.regions:
             for frame in self.frames:
-                location.add_frame(frame)
+                region.add_frame(frame)
 
     def __str__(self):
         return \
@@ -95,7 +97,7 @@ class Animation:
         height: int = data.get("height", 8)
         return Animation(
             data.get("name", "default"),
-            [Location.from_json(location) for location in data.get("locations", [])],
+            [Region.from_json(region) for region in data.get("regions", [])],
             [Frame.from_json(frame, width, height) for frame in data.get("frames", [])],
             data.get("duration", 0),
             data.get("hold", 0),
@@ -116,8 +118,8 @@ class Animation:
         return self._loop
 
     @property
-    def locations(self) -> list[Location]:
-        return self._locations
+    def regions(self) -> list[Region]:
+        return self._regions
 
     @property
     def frames(self) -> list[Frame]:
@@ -223,6 +225,16 @@ class AnimationCommand(Command):
         if arg is None or not isinstance(arg, AnimationController):
             raise ValueError("Invalid argument, expected AnimationController")
         return arg
+
+
+class TestCommand(AnimationCommand):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    def execute(self, arg=None) -> None:
+        controller: AnimationController = self._check_arg(arg)
+        controller.test_display()
+        controller.tick()
 
 
 class PlayCommand(AnimationCommand):
@@ -336,6 +348,8 @@ class AnimationCommandFactory:
         payload: dict = data.get("payload", {})
         if not command:
             raise ValueError("Invalid data, missing 'command'")
+        if command == "test":
+            return TestCommand("test")
         if command == "play":
             return PlayCommand(payload)
         if command == "stop":
@@ -367,12 +381,23 @@ class AnimationController:
         with self._animations_lock:
             self._animations[animation.name] = animation
 
+    def load_baked(self, folder_name: str):
+        for file_name in os.listdir(folder_name):
+            if file_name.endswith(".json"):
+                with open(f"{folder_name}/{file_name}", "r") as f:
+                    animation: Animation = Animation.from_json(json.load(f))
+                    self.add_animation(animation)
+                    animation.play()
+
     def clear_animations(self):
         with self._animations_lock:
             self._animations.clear()
 
     def clear_display(self):
         self._display.zero()
+
+    def test_display(self):
+        self._display.fill(1)
 
     def clear_region(self, x: int, y: int, w: int, h: int):
         if w == 0:
@@ -385,8 +410,8 @@ class AnimationController:
         with self._animations_lock:
             for animation in set(self._animations.values()):
                 if animation.playing:
-                    for location in animation.locations:
-                        self._display.blit(location.get_frame(animation.current_frame_id), location.x, location.y)
+                    for region in animation.regions:
+                        self._display.blit(region.get_frame(animation.current_frame_id), region.x, region.y)
                     animation.advance_frame()
 
     def process_command(self, data: dict):

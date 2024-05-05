@@ -1,0 +1,8 @@
+name: mouth       # internal name for easy reference
+duration: 1.0     # seconds per frame
+regions:          # list of regions to display the animation
+  - name: mouth   # internal name for easy reference
+    x: 0          # the top-left corner of the region
+    y: 16         # the top-left corner of the region
+frames:           # list of frames in the animation
+  - "animations/img/Mouth1.png"  # path to the image file
