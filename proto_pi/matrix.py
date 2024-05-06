@@ -196,6 +196,7 @@ class Matrix(FrameBuffer):
         :return: bytearray index for the given row and device
         """
         assert 0 <= device_id < self.device_count, f"Invalid device_id: {device_id}"
+        assert device_id not in self._skip_devices, f"Skipped device_id: {device_id}"
         assert 0 <= row_number < self._pixels_per_side, f"Invalid row_number: {row_number}"
         if self._reverse_ids:
             device_id = self.device_count - device_id - 1
@@ -212,10 +213,12 @@ class Matrix(FrameBuffer):
             data: int = self._buffer[idx]
             self._cs(0)
             for d_id in range(device_id + 1, self.device_count):
-                self._spi.write(bytearray([_NOOP, 0]))
+                if d_id not in self._skip_devices:
+                    self._spi.write(bytearray([_NOOP, 0]))
             self._spi.write(bytearray([cmd, data]))
             for d_id in range(0, device_id):
-                self._spi.write(bytearray([_NOOP, 0]))
+                if d_id not in self._skip_devices:
+                    self._spi.write(bytearray([_NOOP, 0]))
             self._cs(1)
 
     def show(self, *, force: bool = False) -> None:

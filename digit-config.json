@@ -1,7 +1,7 @@
 ﻿{
-  "cols": 7,
+  "cols": 6,
   "rows": 3,
-  "skip_devices": [2, 3, 4, 9, 10, 11],
-  "reverse": false,
+  "skip_devices": [15, 14, 8],
+  "reverse": true,
   "brightness": 7
 }

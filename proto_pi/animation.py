@@ -243,6 +243,8 @@ class TestCommand(AnimationCommand):
 
     def execute(self, arg=None) -> None:
         controller: AnimationController = self._check_arg(arg)
+        controller.clear_animations()
+        controller.clear_display()
         controller.test_display()
         controller.tick()
 

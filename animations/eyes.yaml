@@ -5,9 +5,13 @@ random_hold:
   end: 8.0
 loop: true        # loop the animation
 regions:          # list of regions to display the animation
-  - name: right   # internal name for easy reference
-    x: 8          # the top-left corner of the region
+  - name: left    # internal name for easy reference
+    x: 0          # the top-left corner of the region
     y: 0          # the top-left corner of the region
+    mirror: true
+  - name: right
+    x: 32
+    y: 0
 frames:           # list of frames in the animation
   - "animations/img/Eye2.png"  # path to the image file
   - "animations/img/Eye3.png"
