@@ -2,7 +2,7 @@ name: mouth       # internal name for easy reference
 duration: 1.0     # seconds per frame
 regions:          # list of regions to display the animation
   - name: right   # internal name for easy reference
-    x: 0          # the top-left corner of the region
+    x: 24         # the top-left corner of the region
     y: 24         # the top-left corner of the region
   - name: left
     x: 0
