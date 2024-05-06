@@ -59,6 +59,7 @@ class Animation:
         self.frames: list[Frame] = []
         self.duration: float = 0
         self.hold: float = 0
+        self.random_hold: dict[str, int] = {}
         self.loop: bool = False
         self.reverse: bool = False
         
@@ -71,6 +72,7 @@ class Animation:
             'frames': [frame.to_dict() for frame in self.frames],
             'duration': self.duration,
             'hold': self.hold,
+            'randomHold': self.random_hold,
             'loop': self.loop,
             'reverse': self.reverse
         }

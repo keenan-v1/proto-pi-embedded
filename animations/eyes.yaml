@@ -1,13 +1,15 @@
 name: eyes        # internal name for easy reference
-duration: 0.25    # seconds per frame
-hold: 3.0         # seconds to hold the last frame
+duration: 0.1     # seconds per frame
+random_hold:
+  start: 3.0
+  end: 8.0
 loop: true        # loop the animation
 regions:          # list of regions to display the animation
   - name: right   # internal name for easy reference
     x: 8          # the top-left corner of the region
     y: 0          # the top-left corner of the region
 frames:           # list of frames in the animation
-  - "animations/img/Eye1.png"  # path to the image file
-  - "animations/img/Eye2.png"
+  - "animations/img/Eye2.png"  # path to the image file
   - "animations/img/Eye3.png"
   - "animations/img/Eye4.png"
+  - "animations/img/Eye1.png"

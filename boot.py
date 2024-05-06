@@ -1,4 +1,5 @@
 import json
+
 import select
 import sys
 import time
@@ -8,10 +9,18 @@ from machine import Pin, SPI
 from proto_pi.animation import AnimationController
 from _thread import start_new_thread
 
+with open('config.json') as config_file:
+    # noinspection PyTypeChecker
+    device_config: dict = json.load(config_file)
+
 spi = SPI(1, sck=Pin(48), mosi=Pin(38))
 cs = Pin(6, Pin.OUT)
-display = Matrix(spi, cs, 3, 3, reverse_ids=True)
-display.brightness(7)
+cols: int = device_config.get('cols', 0)
+rows: int = device_config.get('rows', 0)
+reverse_ids: bool = device_config.get('reverse', False)
+brightness: int = device_config.get('brightness', 7)
+display = Matrix(spi, cs, cols, rows, reverse_ids=reverse_ids)
+display.brightness(brightness)
 display.zero()
 display.show(force=True)
 
@@ -33,7 +42,7 @@ def main():
             start_new_thread(run, (animation_controller,))
         animation_controller.tick()
         display.show()
-        time.sleep(1/30)
+        time.sleep(1/45)
 
 
 if __name__ == "__main__":

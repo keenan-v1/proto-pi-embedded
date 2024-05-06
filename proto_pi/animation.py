@@ -1,5 +1,6 @@
 import json
 import os
+import random
 from _thread import allocate_lock
 
 from proto_pi import Command
@@ -69,6 +70,7 @@ class Animation:
                  frames: list[Frame],
                  duration: float,
                  hold: float,
+                 random_hold: dict[str, float],
                  loop: bool,
                  reverse: bool
                  ) -> None:
@@ -82,6 +84,7 @@ class Animation:
         self._frame_id: int = 0
         self._duration_millis: int = int(duration * 1000)
         self._hold_millis: int = int(hold * 1000)
+        self._random_hold: dict[str, float] = random_hold
         self._start_millis: int = 0
         for region in self.regions:
             for frame in self.frames:
@@ -101,6 +104,7 @@ class Animation:
             [Frame.from_json(frame, width, height) for frame in data.get("frames", [])],
             data.get("duration", 0),
             data.get("hold", 0),
+            data.get("randomHold", {'start': 0, 'end': 0}),
             data.get("loop", False),
             data.get("reverse", False)
         )
@@ -130,8 +134,14 @@ class Animation:
         return self._duration_millis / 1000
 
     @property
-    def hold(self) -> float:
-        return self._hold_millis / 1000
+    def hold(self) -> int:
+        if self._hold_millis > 0:
+            return self._hold_millis
+        start: float = self._random_hold.get("start", 0)
+        end: float = self._random_hold.get("end", 0)
+        if end != 0 and start < end:
+            return int(random.uniform(start, end) * 1000)
+        return 0
 
     @property
     def playing(self) -> bool:
@@ -150,7 +160,7 @@ class Animation:
             return 0
         is_last_frame = self._frame_id == len(self.frames) - 1 if not self._is_reversing else self._frame_id == 0
         if self.hold > 0 and is_last_frame:
-            return self._hold_millis
+            return self.hold
         frame_id = self._frame_id + 1
         next_millis = frame_id * self._frame_millis if not self._is_reversing \
             else (len(self.frames) * 2 - frame_id) * self._frame_millis
