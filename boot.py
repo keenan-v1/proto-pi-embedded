@@ -32,13 +32,27 @@ def run(animation_controller: AnimationController):
     animation_controller.is_loading = False
 
 
+def stop():
+    update_config("running", False)
+
+
+def start():
+    update_config("running", True)
+
+
+def update_config(key: str, value):
+    device_config[key] = value
+    with open('config.json', 'w') as config_file:
+        json.dump(device_config, config_file)
+
+
 def main():
     poll = select.poll()
     poll.register(sys.stdin, select.POLLIN)
     animation_controller = AnimationController(display)
     animation_controller.load_baked("/data")
 
-    while True:
+    while device_config["running"]:
         if poll.poll(0) and not animation_controller.is_loading:
             start_new_thread(run, (animation_controller,))
         animation_controller.tick()
