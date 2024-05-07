@@ -2,7 +2,7 @@ name: nose        # internal name for easy reference
 duration: 1.0     # seconds per frame
 regions:          # list of regions to display the animation
   - name: nose    # internal name for easy reference
-    x: 16         # the top-left corner of the region
+    x: 16        # the top-left corner of the region
     y: 8          # the top-left corner of the region
 frames:           # list of frames in the animation
   - "animations/img/Nose.png"  # path to the image file
