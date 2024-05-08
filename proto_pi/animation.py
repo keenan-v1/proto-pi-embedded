@@ -3,7 +3,6 @@ import os
 import random
 from _thread import allocate_lock
 
-from proto_pi import Command
 from proto_pi.matrix import Matrix
 from proto_pi.rendering import Frame
 import time
@@ -226,6 +225,18 @@ class Animation:
             self._frame_id += 1 if not self._is_reversing else -1
 
 
+class Command:
+    def __init__(self, command: str) -> None:
+        self._command: str = command
+
+    @property
+    def command(self) -> str:
+        return self._command
+
+    def execute(self, arg: any = None) -> None:
+        pass
+
+
 class AnimationCommand(Command):
     def __init__(self, name: str):
         super().__init__(name)
@@ -397,9 +408,20 @@ class AnimationController:
         for file_name in os.listdir(folder_name):
             if file_name.endswith(".json"):
                 with open(f"{folder_name}/{file_name}", "r") as f:
+                    # noinspection PyTypeChecker
                     animation: Animation = Animation.from_json(json.load(f))
                     self.add_animation(animation)
                     animation.play()
+
+    def stop_all(self):
+        with self._animations_lock:
+            for animation in self._animations.values():
+                animation.stop()
+
+    def play_all(self):
+        with self._animations_lock:
+            for animation in self._animations.values():
+                animation.play()
 
     def clear_animations(self):
         with self._animations_lock:
