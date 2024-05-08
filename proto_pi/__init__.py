@@ -6,6 +6,7 @@ from machine import SPI, Pin
 
 from proto_pi.animation import AnimationController
 from proto_pi.config import Config
+from proto_pi.fonts import Fonts, String
 from proto_pi.matrix import Matrix
 
 
@@ -22,6 +23,22 @@ class Device:
         self._animation_controller: AnimationController = AnimationController(self._matrix)
         if self._config.preload_animation_path:
             self._animation_controller.load_baked(self._config.preload_animation_path)
+
+    def show_device_ids(self) -> None:
+        self.stop()
+        self.clear()
+
+        id_range = range(self._matrix.device_count) if not self._config.reverse_ids else range(self._matrix.device_count - 1, -1, -1)
+
+        for device_id in id_range:
+            if device_id in self._config.skip_devices:
+                continue
+            d_id = device_id if not self._config.reverse_ids else self._matrix.device_count - device_id - 1
+            row: int = d_id // self._config.cols
+            col: int = d_id % self._config.cols
+            device_str: String = String(Fonts.Compact, f"{device_id:02d}")
+            self._matrix.text(device_str, col * 8, row * 8, 1)
+        self._matrix.show(force=True)
 
     def debug(self) -> None:
         self._matrix.debug()
